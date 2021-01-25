@@ -1,0 +1,52 @@
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+update.packages('covdata')
+library(covdata)
+library(forecast)
+################################################### Isolating Data
+data_isolate <- function(df){
+  final_df <- ungroup(df) %>%
+    select(date, cases_total, deaths_total, recovered_total)
+  final_df[is.na(final_df)] <- 0
+  return(final_df)  
+}
+################################################### Computing ARIMA forecast
+compute_ARIMA <- function(trim_data){
+  cases <- ungroup(trim_data) %>%
+    select(cases_total)
+  cases_ts <- ts(cases, frequency=1)
+  case_forecast <- forecast(auto.arima(cases_ts),h=32)
+  
+  deaths <- ungroup(trim_data) %>%
+    select(deaths_total)
+  deaths_ts <- ts(deaths, frequency=1)
+  death_forecast <- forecast(auto.arima(deaths_ts),h=32)
+  return(case_forecast)
+}
+################################################### Main
+region = "Tamil Nadu"
+data <- get_regional_data(country = "India")
+data <- data %>%
+  filter(state == region)
+main_data <- data[40:(nrow(data)-7),]
+trim_data <- data_isolate(main_data) %>%
+  mutate(days_elapsed = as.numeric(date - min(date), units="days"))
+
+N = nrow(trim_data)
+data_70 = round(N *0.7, digits = 0)
+train_data = trim_data[1:data_70, ] #70/30 training/testing split
+test_data  = trim_data[(data_70+2):N, ]
+
+forecasts <- compute_ARIMA(train_data)
+
+case_test <- ungroup(test_data) %>%
+  select(cases_total) %>%
+  pull(cases_total)
+accuracy(forecasts, x = case_test)
+
+plot(forecasts,main = "Case Count + ARIMA Projection",
+     xlab = "Days since 1st Measurement", ylab = "Case Count")
+legend("topleft", inset=.05,c("Cases","Forecast","80% Confidence",
+                              "95% Confidence"),fill=c("black","cornflowerblue",
+                                                       "darkgray","gray87"))
