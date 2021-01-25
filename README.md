@@ -18,7 +18,7 @@ Exponential Smoothing and ARIMA models are generated/run using the stats and for
 over the other 30% (for validation). All forecasts are generated with and 80% and 95% confidence interval.
 
 LSTM model is generated/run using the keras package. It features two 30 unit LSTM layers and one dense layer. The model is trained over 10-20 epochs. The model utilizes available
-cross validation features and can generate a 7-day forecast. Two scripts are provided. No confidence interval is provided.
+cross validation features and can generate a 7-day forecast. One script is provided. No confidence interval is provided.
 
 SIR model is run off of a custom discrete time script. The model relies on 3 differential equations to track three population compartments (generated off of case data set and population
 data). The model generates both forecasts (any time length) and equation rate constants (for analysis). One script is provided. A 95% confidence interval is provided.
